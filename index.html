@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#26211a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="無人で流れ着いた英国商船ハルシオン号。懐中時計で死の瞬間を覗き、乗員十名の運命を突き止める1ビット推理アドベンチャー。">
+  <title>ハルシオン号 検分録</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- タイトル -->
+    <section id="screen-title" class="screen active">
+      <canvas id="title-art" class="pixel"></canvas>
+      <div class="title-block">
+        <p class="kicker">天保八年 長崎</p>
+        <h1>ハルシオン号<br><span>検分録</span></h1>
+        <p class="sub">THE HALCYON INQUEST</p>
+      </div>
+      <div class="title-menu">
+        <button id="btn-continue" class="btn">つづきから</button>
+        <button id="btn-new" class="btn">はじめから</button>
+        <button id="btn-settings" class="btn ghost">設定</button>
+      </div>
+    </section>
+
+    <!-- 語り（導入・死の瞬間の音声・エピローグ） -->
+    <section id="screen-narration" class="screen" aria-live="polite">
+      <div class="narr-head" id="narr-head"></div>
+      <div class="narr-body">
+        <p id="narr-lang" class="narr-lang"></p>
+        <p id="narr-who" class="narr-who"></p>
+        <p id="narr-text" class="narr-text"></p>
+      </div>
+      <div class="narr-foot">
+        <span id="narr-hint" class="hint">画面をタップ</span>
+        <button id="narr-skip" class="btn small ghost">とばす</button>
+      </div>
+    </section>
+
+    <!-- 船内図 -->
+    <section id="screen-map" class="screen">
+      <header class="bar">
+        <div>
+          <h2>ハルシオン号 船内図</h2>
+          <p class="bar-sub" id="map-progress"></p>
+        </div>
+        <button id="map-book" class="btn small">検分帳</button>
+      </header>
+      <div class="map-wrap">
+        <div class="map-frame" id="map-frame">
+          <canvas id="map-canvas" class="pixel"></canvas>
+          <div id="map-spots"></div>
+        </div>
+      </div>
+      <p class="map-note" id="map-note"></p>
+      <div class="map-actions">
+        <button id="map-settings" class="btn small ghost">設定</button>
+        <button id="map-finish" class="btn small ghost">検分を終える</button>
+      </div>
+    </section>
+
+    <!-- 死の瞬間 -->
+    <section id="screen-memory" class="screen">
+      <canvas id="mem-canvas"></canvas>
+      <header class="mem-top">
+        <button id="mem-back" class="btn small" aria-label="船内図に戻る">◀ 戻る</button>
+        <div class="mem-title"><b id="mem-chapter"></b><span id="mem-place"></span></div>
+        <button id="mem-book" class="btn small">検分帳</button>
+      </header>
+      <div class="mem-tools">
+        <button id="mem-zoom" class="btn small round" aria-label="拡大">＋</button>
+        <button id="mem-replay" class="btn small round" aria-label="台詞をもう一度">♪</button>
+      </div>
+      <p class="mem-hint" id="mem-hint">ドラッグで見回す ・ 人物をタップ</p>
+      <div id="mem-card" class="mem-card" hidden>
+        <canvas id="mem-card-face" class="pixel face"></canvas>
+        <div class="mem-card-body">
+          <p class="mem-card-no" id="mem-card-no"></p>
+          <p class="mem-card-fate" id="mem-card-fate"></p>
+        </div>
+        <button id="mem-card-edit" class="btn small">記す</button>
+      </div>
+    </section>
+
+    <!-- 検分帳 -->
+    <section id="screen-book" class="screen book">
+      <header class="bar">
+        <button id="book-close" class="btn small">閉じる</button>
+        <h2>検分帳</h2>
+        <span class="bar-sub" id="book-progress"></span>
+      </header>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="crew" class="tab active">運命</button>
+        <button role="tab" data-tab="roster" class="tab">乗員名簿</button>
+        <button role="tab" data-tab="chapters" class="tab">記録</button>
+      </nav>
+      <div class="book-pages">
+        <div class="page active" id="tab-crew">
+          <div class="sketch" id="sketch">
+            <canvas id="sketch-canvas" class="pixel"></canvas>
+            <div id="sketch-tags"></div>
+          </div>
+          <p class="caption">出航前に描かれた乗員の集合画。番号をタップして運命を記す。</p>
+          <ol class="fate-list" id="fate-list"></ol>
+        </div>
+        <div class="page" id="tab-roster">
+          <p class="caption">広州 英国商館発行 乗員名簿（写し）</p>
+          <table class="roster">
+            <thead><tr><th>氏名</th><th>役職</th><th>出身</th></tr></thead>
+            <tbody id="roster-body"></tbody>
+          </table>
+          <div class="rules">
+            <h3>検分の心得</h3>
+            <ul>
+              <li>懐中時計を骸にかざすと、その者が死んだ瞬間を見ることができる。</li>
+              <li>台詞・服装・役職・言葉の訛りから、集合画の人物が誰なのかを推し量れ。</li>
+              <li>名前・死因・下手人がすべて正しい運命が<strong>三つ揃うごとに</strong>、それらは確定する。</li>
+              <li>どれが正しいのかは教えられない。確定した三人から逆算せよ。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="page" id="tab-chapters">
+          <ol class="chapter-list" id="chapter-list"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 運命を記す -->
+    <div id="sheet" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <div class="sheet-head">
+          <canvas id="sheet-face" class="pixel face"></canvas>
+          <div>
+            <h3 id="sheet-title"></h3>
+            <p class="sheet-seen" id="sheet-seen"></p>
+          </div>
+        </div>
+        <div class="sentence" id="sheet-sentence"></div>
+        <label class="field">名前
+          <select id="f-name"></select>
+        </label>
+        <label class="field">運命
+          <select id="f-cause"></select>
+        </label>
+        <label class="field" id="f-killer-wrap">下手人
+          <select id="f-killer"></select>
+        </label>
+        <p class="locked-note" id="sheet-locked" hidden>✦ この運命は確定している</p>
+        <div class="sheet-actions">
+          <button class="btn ghost" id="sheet-clear">消す</button>
+          <button class="btn" id="sheet-save">記す</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 設定 -->
+    <div id="settings" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <h3 id="settings-title">設定</h3>
+        <p class="field-label">配色</p>
+        <div class="palette-row" id="palette-row"></div>
+        <label class="toggle"><input type="checkbox" id="opt-sound"> 効果音</label>
+        <div class="sheet-actions">
+          <button class="btn ghost danger" id="opt-reset">記録を消去</button>
+          <button class="btn" data-close>閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 結果 -->
+    <section id="screen-result" class="screen">
+      <div class="result">
+        <p class="kicker">検分の結果</p>
+        <p class="score" id="result-score"></p>
+        <p id="result-text" class="result-text"></p>
+        <div class="title-menu">
+          <button id="result-continue" class="btn">検分を続ける</button>
+          <button id="result-title" class="btn ghost">タイトルへ</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+    <div id="flash" class="flash"></div>
+  </div>
+
+  <script src="js/render.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
