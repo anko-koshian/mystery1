@@ -6,6 +6,7 @@
   --font: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -176,6 +177,7 @@ h1 span { font-size: .62em; letter-spacing: .5em; }
 .sheet-panel .btn.ghost { background: transparent; color: var(--ink); box-shadow: none; }
 .sheet-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
 .sheet-actions .btn { flex: 1; }
+.ask-text { white-space: pre-line; font-size: 16px; margin: 4px 0 8px; }
 .locked-note { margin: 4px 0; font-weight: 700; letter-spacing: .1em; }
 .palette-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .palette-row button { appearance: none; cursor: pointer; border: 2px solid var(--ink); padding: 8px; min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 14px; }

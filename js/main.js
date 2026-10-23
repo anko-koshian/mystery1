@@ -585,11 +585,24 @@
     $('settings').hidden = false;
   }
 
+  /* ---------- in-page confirmation (window.confirm is unavailable in some hosts) ---------- */
+  let askResolve = null;
+  function ask(message, okLabel) {
+    $('ask-text').textContent = message;
+    $('ask-ok').textContent = okLabel || 'はい';
+    $('ask').hidden = false;
+    return new Promise((res) => { askResolve = res; });
+  }
+  function answer(v) {
+    $('ask').hidden = true;
+    if (askResolve) { const r = askResolve; askResolve = null; r(v); }
+  }
+
   /* ---------- result ---------- */
-  function finish() {
+  async function finish() {
     const unviewed = CHAPTERS.length - S.viewed.length;
     const blanks = FIGURES.filter((f) => !S.guesses[f.no]).length;
-    if ((unviewed || blanks) && !confirm(`${unviewed ? `未検分の骸が${unviewed}体、` : ''}${blanks ? `未記入の運命が${blanks}人分` : ''}ある。\nそれでも検分を終えるか？`)) return;
+    if ((unviewed || blanks) && !(await ask(`${unviewed ? `未検分の骸が${unviewed}体、` : ''}${blanks ? `未記入の運命が${blanks}人分` : ''}ある。\nそれでも検分を終えるか？`, '検分を終える'))) return;
     const correct = FIGURES.filter((f) => isCorrect(f.no)).length;
     S.finished = true; save();
     const go = () => {
@@ -620,9 +633,9 @@
     applyPalette();
     SFX.enabled = S.sound;
 
-    $('btn-new').addEventListener('click', () => {
+    $('btn-new').addEventListener('click', async () => {
       SFX.unlock();
-      if (S.started && !confirm('これまでの検分記録を消して、はじめから始めますか？')) return;
+      if (S.started && !(await ask('これまでの検分記録を消して、はじめから始めますか？', 'はじめから'))) return;
       startNew();
     });
     $('btn-continue').addEventListener('click', () => { SFX.unlock(); show('map'); });
@@ -639,7 +652,7 @@
     });
     window.addEventListener('keydown', (e) => {
       if (current === 'narration' && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); nextLine(); }
-      if (e.key === 'Escape') { ['sheet', 'settings'].forEach((id) => closeSheet(id)); }
+      if (e.key === 'Escape') { ['sheet', 'settings'].forEach((id) => closeSheet(id)); if (!$('ask').hidden) answer(false); }
     });
 
     $('mem-back').addEventListener('click', () => show('map'));
@@ -672,8 +685,9 @@
     document.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', () => { closeSheet('sheet'); closeSheet('settings'); }));
 
     $('opt-sound').addEventListener('change', (e) => { S.sound = e.target.checked; SFX.enabled = S.sound; save(); });
-    $('opt-reset').addEventListener('click', () => {
-      if (!confirm('検分記録をすべて消去しますか？')) return;
+    $('opt-reset').addEventListener('click', async () => {
+      closeSheet('settings');
+      if (!(await ask('検分記録をすべて消去しますか？', '消去する'))) return;
       const keep = { palette: S.palette, sound: S.sound };
       S = Object.assign(freshState(), keep);
       save();
@@ -681,6 +695,9 @@
       show('title');
     });
 
+    $('ask-ok').addEventListener('click', () => answer(true));
+    $('ask-cancel').addEventListener('click', () => answer(false));
+    $('ask').querySelector('.sheet-backdrop').addEventListener('click', () => answer(false));
     $('result-continue').addEventListener('click', () => show('map'));
     $('result-title').addEventListener('click', () => show('title'));
 
